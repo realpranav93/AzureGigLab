@@ -1,0 +1,5 @@
+# Ignore environemnt variables
+.env
+# Ignore PPT
+.pptx
+*.pptx
