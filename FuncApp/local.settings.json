@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AZURE_SUBSCRIPTION_ID": "21877728-764b-495a-baac-fd6cea808148",
+    "AZURE_TENANT_ID": "2d8d7297-b3d6-436a-bc19-838ca94660d0",
+    "AZURE_CLIENT_ID": "dc5b23e0-0ace-4761-a38d-9443e6aac6b3",
+    "AZURE_CLIENT_SECRET": "q0H8Q~pVOqa-locTL6YW-KUuN~MPlcbziD~-4b4i"
+  }
+}
