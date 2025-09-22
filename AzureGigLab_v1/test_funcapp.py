@@ -18,45 +18,56 @@ def call_api_post():
         # "Authorization": "Bearer your-token-here",
         "x-functions-key": "3H5_rIyI4AYGa6mcCA2EVhYFqe0rcVvltgzHg7UeBtQVAzFuynsuOA=="
     }
-    project_name = "TestProjectAjay"
+    project_name = "churnpredv2"
     # Request body
     resource_ops = [
+        # 1. Storage Account with public access disabled
         {
             "type": "Storage Account",
-            "url": "https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.Storage/storageAccounts/{resource_name}",
+            "url": "https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.Storage/storageAccounts/st{resource_name}",
             "body": {
                 "sku": {"name": "Standard_LRS"},
                 "kind": "StorageV2",
-                "location": "eastus2"
-            },
-            "api_version": "2021-04-01",
-            "method": "PUT"
-        },
-        {
-            "type": "SQL Server",
-            "url": "https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.Sql/servers/{resource_name}",
-            "body": {
                 "location": "eastus2",
                 "properties": {
-                    "administratorLogin": "sqladminuser",
-                    "administratorLoginPassword": "YourStrongP@ssw0rd!"
+                    "publicNetworkAccess": "Disabled"
                 }
             },
-            "api_version": "2021-02-01-preview",
+            "api_version": "2021-09-01",
             "method": "PUT"
         },
+        # 2. AI Foundry (Cognitive Services) with public access disabled
         {
             "type": "AI Foundry",
-            "url": "https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.CognitiveServices/accounts/{resource_name}",
+            "url": "https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.CognitiveServices/accounts/cog{resource_name}",
             "body": {
                 "location": "eastus2",
                 "sku": {"name": "S0"},
                 "kind": "CognitiveServices",
                 "properties": {
-                    "customSubDomainName": f"cog{project_name.lower()}{random.randint(100,999)}"
+                    "publicNetworkAccess": "Disabled"
                 }
             },
-            "api_version": "2021-04-30",
+            "api_version": "2021-10-01",
+            "method": "PUT"
+        },
+        # 3. Key Vault
+        {
+            "type": "Key Vault",
+            "url": "https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.KeyVault/vaults/kv-{resource_name}",
+            "body": {
+                "location": "eastus2",
+                "properties": {
+                    "sku": {
+                        "family": "A",
+                        "name": "standard"
+                    },
+                    "tenantId": "your-tenant-id", # Replace with your tenant ID or use os.environ.get
+                    "accessPolicies": [],
+                    "publicNetworkAccess": "Disabled"
+                }
+            },
+            "api_version": "2021-11-01-preview",
             "method": "PUT"
         }
     ]

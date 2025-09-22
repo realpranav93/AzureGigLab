@@ -104,6 +104,10 @@ def CreateAzureResource(req: func.HttpRequest) -> func.HttpResponse:
     resource_ops = req.get_json().get('resource_ops', [])
     project_name = req.get_json().get('project_name', 'sampleprojecthack2025')
 
+    logging.info("Received JSON: %s", req.get_json())
+    logging.info(f"Resource operations: {resource_ops}")
+    logging.info(f"Project name: {project_name}")
+
     flag_rg = None
     subscription_id = "21877728-764b-495a-baac-fd6cea808148"
     location = "eastus2"
@@ -140,13 +144,18 @@ def CreateAzureResource(req: func.HttpRequest) -> func.HttpResponse:
     try:
 
         if flag_rg:
-            # base_url = f"https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group_name}"
+            # base_url = f"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}"
 
             for resource in resource_ops:
                 if resource['method'] == 'PUT':
                     resource_type = resource['type']
                     url = resource['url'].replace('{resource_group}', resource_group_name).replace('{subscription_id}', subscription_id)
+
                     r_body = resource['body']
+                    try:
+                        r_body['properties']['tenantId'] = os.environ.get("AZURE_TENANT_ID", "")
+                    except Exception as e:
+                        logging.error(f"Error processing body for  {resource_type}: {e}")
                     r_method = resource['method']
                     api_version = resource['api_version']
 
@@ -155,7 +164,8 @@ def CreateAzureResource(req: func.HttpRequest) -> func.HttpResponse:
                     resource_name = get_llm_response(prompt_rg)
                     url = url.replace('{resource_name}', resource_name)
                     resource_url = url
-                    print("Resource URL:", resource_url)
+                    logging.info("Resource URL: %s", resource_url)
+                    logging.info("Resource Body: %s", r_body)
                     payload = {
                         "url": resource_url,
                         "body": r_body,
@@ -165,16 +175,16 @@ def CreateAzureResource(req: func.HttpRequest) -> func.HttpResponse:
                     try:
                         response = send_request(payload)
                         if response.status_code >= 200 and response.status_code < 300:
-                            msg = f"Successfully initiated creation of {resource_name}. Status: {response.status_code}"
+                            msg = f"Successfully initiated creation of {resource_type}. Status: {response.status_code}"
                             logging.info(msg)
                             logging.info(response.text)
                         else:
-                            msg = f"Failed to create {resource_name}. Status: {response.status_code}"
+                            msg = f"Failed to create {resource_type}. Status: {response.status_code}"
                             logging.error(msg)
                             logging.error(response.text)
                         msgs += msg + "\n"
                     except requests.exceptions.RequestException as e:
-                        logging.error(f"Error calling Azure Function for {resource_name}: {e}")
+                        logging.error(f"Error calling Azure Function for {resource_type}: {e}")
                     logging.info("-" * 20)
 
                 elif resource['method'] == 'DELETE':
@@ -196,16 +206,16 @@ def CreateAzureResource(req: func.HttpRequest) -> func.HttpResponse:
                     try:
                         response = send_request(payload)
                         if response.status_code >= 200 and response.status_code < 300:
-                            msg = f"Successfully initiated deletion of {resource_name}. Status: {response.status_code}"
+                            msg = f"Successfully initiated deletion of {resource_type}. Status: {response.status_code}"
                             logging.info(msg)
                             logging.info(response.text)
                         else:
-                            msg = f"Failed to delete {resource_name}. Status: {response.status_code}"
+                            msg = f"Failed to delete {resource_type}. Status: {response.status_code}"
                             logging.warning(msg)
                             logging.warning(response.text)
                         msgs += msg + "\n"
                     except requests.exceptions.RequestException as e:
-                        logging.error(f"Error calling Azure Function for {resource_name}: {e}")
+                        logging.error(f"Error calling Azure Function for {resource_type}: {e}")
                     logging.info("-" * 20)
         else:
             logging.error("Something went wrong while creating the resources.")
